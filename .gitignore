@@ -1,3 +1,41 @@
 # .gitignore
 .env
 __pycache__/
+# Virtual Environment
+# This is critical to ignore since it contains thousands of library files
+venv/
+env/
+ENV/
+bin/
+lib/
+include/
+
+# Python Cache
+# These are temporary files created when you run your code
+**/__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment Variables / Secrets
+# DO NOT remove this. It prevents your OpenAI/Databricks keys from leaking.
+.env
+.flaskenv
+
+# IDE Settings
+# Keeps your personal VS Code settings out of the repo
+.vscode/
+.idea/
+
+# OS Related
+.DS_Store
+Thumbs.db
+
+# Databricks / MLflow
+# Prevents local tracking data from cluttering GitHub
+mlruns/
+outputs/
+.databricks/
+
+# Project Specific
+*.log
+.pytest_cache/
