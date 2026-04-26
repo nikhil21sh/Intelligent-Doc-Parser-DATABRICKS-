@@ -1,3 +1,6 @@
+# .gitignore
+.env
+__pycache__/
 # Virtual Environment
 # This is critical to ignore since it contains thousands of library files
 venv/
