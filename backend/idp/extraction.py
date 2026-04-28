@@ -1,9 +1,12 @@
+import os
 import mlflow
-from langchain_openai import ChatOpenAI
+from langchain_groq import ChatGroq
 from langchain.prompts import ChatPromptTemplate
 
 # Import from the shared directory we created earlier
-from shared.models import FacilityFact
+from models.models import FacilityFact
+
+groq_key = os.environ.get("GROQ_API_KEY")
 
 class MedicalIDP:
     def __init__(self):
@@ -11,7 +14,11 @@ class MedicalIDP:
         mlflow.set_experiment("/Shared/IDP-Backend-API")
         
         # Uses GPT-4 or Databricks DBRX via LangChain
-        self.llm = ChatOpenAI(model="gpt-4-turbo", temperature=0)
+        self.llm = ChatGroq(
+            model="llama3-70b-8192",
+            temperature=0,
+            api_key=groq_key
+        )
 
     def extract_from_text(self, text: str):
         prompt = ChatPromptTemplate.from_messages([
