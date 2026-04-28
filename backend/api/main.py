@@ -4,7 +4,7 @@ import nest_asyncio
 import uvicorn
 
 # Corrected imports based on your repository structure
-from shared.models import FacilityFact
+from models.models import FacilityFact
 from backend.idp.extraction import MedicalIDP
 
 app = FastAPI(title="Virtue Foundation IDP API")
