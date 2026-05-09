@@ -1,18 +1,26 @@
+/**
+ * frontend/src/components/Chat/ChatInterface.jsx
+ *
+ * Changes from original:
+ *  - Accepts `facilityMap` prop from App.jsx
+ *  - Passes `facilityMap` to each ChatBubble so CitationPanel
+ *    can resolve live backend row_ids (GH-FAC-001 etc.)
+ *  - Everything else unchanged
+ */
 import React, { useState, useRef, useEffect } from 'react';
 import { useChat } from '../../hooks/useChat';
-import ChatBubble from './ChatBubble';
+import ChatBubble   from './ChatBubble';
 import { DEMO_QUERIES } from '../../data/mockData';
 import clsx from 'clsx';
 
-export default function ChatInterface({ demoQuery, onDemoQueryConsumed }) {
+export default function ChatInterface({ demoQuery, onDemoQueryConsumed, facilityMap }) {
   const { messages, loading, sendMessage } = useChat();
-  const [input, setInput] = useState('');
+  const [input,     setInput]     = useState('');
   const [animateId, setAnimateId] = useState(null);
-  const bottomRef = useRef(null);
-  const inputRef = useRef(null);
+  const bottomRef    = useRef(null);
+  const inputRef     = useRef(null);
   const lastMsgCount = useRef(messages.length);
 
-  // Scroll to bottom on new message
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     if (messages.length > lastMsgCount.current) {
@@ -22,7 +30,6 @@ export default function ChatInterface({ demoQuery, onDemoQueryConsumed }) {
     }
   }, [messages]);
 
-  // Handle demo query injection
   useEffect(() => {
     if (demoQuery) {
       handleSend(demoQuery);
@@ -64,10 +71,10 @@ export default function ChatInterface({ demoQuery, onDemoQueryConsumed }) {
             key={msg.id}
             message={msg}
             animate={msg.id === animateId}
+            facilityMap={facilityMap} 
           />
         ))}
 
-        {/* Loading indicator */}
         {loading && (
           <div className="flex gap-3 items-start chat-msg">
             <div className="w-7 h-7 rounded-lg bg-primary-700 border border-primary-600/40 flex items-center justify-center shrink-0">
@@ -81,12 +88,11 @@ export default function ChatInterface({ demoQuery, onDemoQueryConsumed }) {
                 <span className="w-1.5 h-1.5 bg-primary-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                 <span className="w-1.5 h-1.5 bg-primary-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
                 <span className="w-1.5 h-1.5 bg-primary-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                <span className="text-xs text-slate-500 ml-1">Analyzing…</span>
+                <span className="text-xs text-slate-500 ml-1">Agent reasoning…</span>
               </div>
             </div>
           </div>
         )}
-
         <div ref={bottomRef} />
       </div>
 
@@ -135,7 +141,9 @@ export default function ChatInterface({ demoQuery, onDemoQueryConsumed }) {
             </svg>
           </button>
         </div>
-        <p className="text-[10px] text-slate-700 mt-1.5 text-center">Enter to send · Shift+Enter for new line</p>
+        <p className="text-[10px] text-slate-700 mt-1.5 text-center">
+          Enter to send · Shift+Enter for new line
+        </p>
       </div>
     </div>
   );

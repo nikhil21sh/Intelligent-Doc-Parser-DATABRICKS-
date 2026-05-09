@@ -1,18 +1,22 @@
+/**
+ * frontend/src/components/Chat/ChatBubble.jsx
+ *
+ * Changes from original:
+ *  - Accepts `facilityMap` prop and passes it to CitationPanel
+ *    so backend row_ids can be resolved to facility names.
+ *  - Everything else unchanged.
+ */
 import React, { useState, useEffect, useRef } from 'react';
 import clsx from 'clsx';
 import CitationPanel from './CitationPanel';
 import { parseBold } from '../../utils/helpers';
 
-/**
- * ChatBubble — renders a single message with optional typewriter effect.
- * system messages support bold parsing, citations, and reasoning plan.
- */
-export default function ChatBubble({ message, animate = false }) {
+export default function ChatBubble({ message, animate = false, facilityMap = null }) {
   const { role, text, citations = [], plan = [], timestamp } = message;
   const isSystem = role === 'system';
   const [displayed, setDisplayed] = useState(animate ? '' : text);
-  const [done, setDone] = useState(!animate);
-  const [planOpen, setPlanOpen] = useState(false);
+  const [done,      setDone]      = useState(!animate);
+  const [planOpen,  setPlanOpen]  = useState(false);
   const intervalRef = useRef(null);
 
   useEffect(() => {
@@ -37,17 +41,16 @@ export default function ChatBubble({ message, animate = false }) {
 
   return (
     <div className={clsx('chat-msg flex gap-3', isSystem ? 'justify-start' : 'justify-end')}>
-      {/* Avatar */}
       {isSystem && (
         <div className="w-7 h-7 rounded-lg bg-primary-700 border border-primary-600/40 flex items-center justify-center shrink-0 mt-0.5">
           <svg className="w-4 h-4 text-primary-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.347.347a3.45 3.45 0 00-1.058 2.41v.18a2 2 0 01-2 2h-.83a2 2 0 01-2-2v-.18a3.45 3.45 0 00-1.058-2.41l-.347-.347z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+              d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.347.347a3.45 3.45 0 00-1.058 2.41v.18a2 2 0 01-2 2h-.83a2 2 0 01-2-2v-.18a3.45 3.45 0 00-1.058-2.41l-.347-.347z" />
           </svg>
         </div>
       )}
 
       <div className={clsx('max-w-[85%] space-y-2', isSystem ? '' : 'items-end flex flex-col')}>
-        {/* Bubble */}
         <div className={clsx(
           'rounded-2xl px-4 py-3 text-sm leading-relaxed',
           isSystem
@@ -91,24 +94,23 @@ export default function ChatBubble({ message, animate = false }) {
           </div>
         )}
 
-        {/* Citations */}
+        {/* Citations — facilityMap passed through for live resolution */}
         {isSystem && done && citations.length > 0 && (
           <div className="w-full">
-            <CitationPanel citations={citations} />
+            <CitationPanel citations={citations} facilityMap={facilityMap} />
           </div>
         )}
 
-        {/* Timestamp */}
         <div className={clsx('text-[10px] text-slate-600', isSystem ? 'pl-1' : 'pr-1')}>
           {formattedTime}
         </div>
       </div>
 
-      {/* User avatar */}
       {!isSystem && (
         <div className="w-7 h-7 rounded-lg bg-slate-700 border border-slate-600/40 flex items-center justify-center shrink-0 mt-0.5">
           <svg className="w-4 h-4 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
           </svg>
         </div>
       )}
