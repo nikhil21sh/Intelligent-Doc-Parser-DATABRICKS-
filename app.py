@@ -10,6 +10,10 @@ sys.path.insert(0, os.path.dirname(__file__))
 # Databricks Apps uses OAuth (not PAT), so MLflow needs this flag set
 # BEFORE any mlflow import happens anywhere in the codebase.
 os.environ["MLFLOW_ENABLE_DB_SDK"] = "true"
+os.environ["MLFLOW_TRACKING_URI"]      = "databricks"
+# Disable MLflow autolog on Apps — it tries to connect at import time
+os.environ["MLFLOW_DISABLE_AUTOLOG"]   = "true"
+sys.path.insert(0, os.path.dirname(__file__))
 
 # ── Load Groq key from Databricks Secrets ─────────────────────────────────
 try:
