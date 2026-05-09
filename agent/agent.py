@@ -670,47 +670,39 @@ graph = _workflow.compile()
 # ════════════════════════════════════════════════════════════════════════════
 
 def run_agent(query: str, region: str = None) -> Dict[str, Any]:
-    """
-    Wraps graph.invoke() inside an MLflow run.
-    All 4 nodes tag the same run ID for step-level citation tracing.
-    Returns the full final state dict.
-    """
-    import os
     os.environ["MLFLOW_ENABLE_DB_SDK"] = "true"
-    mlflow.set_tracking_uri("databricks")
-    mlflow.set_experiment("/Shared/IDP-Backend-API")
-    with mlflow.start_run(run_name=f"agent-d4-{int(time.time())}") as run:
-        mlflow.log_param("query",  query)
-        mlflow.log_param("region", region or "unspecified")
-        mlflow.log_param("day",    4)
 
-        initial: AgentState = {
-            "query":                query,
-            "region":               region,
-            "retrieved_facilities": [],
-            "search_confidence":    0.0,
-            "reasoning":            {},
-            "narrative":            "",
-            "citations":            [],
-            "response":             "",
-            "mlflow_run_id":        run.info.run_id,
-            "node_errors":          [],
-        }
+    try:
+        mlflow.set_tracking_uri("databricks")
+        mlflow.set_experiment("/Shared/IDP-Backend-API")
+        use_mlflow = True
+    except Exception as e:
+        print(f"MLflow disabled for this run: {e}")
+        use_mlflow = False
 
+    initial: AgentState = {
+        "query":                query,
+        "region":               region,
+        "retrieved_facilities": [],
+        "search_confidence":    0.0,
+        "reasoning":            {},
+        "narrative":            "",
+        "citations":            [],
+        "response":             "",
+        "mlflow_run_id":        None,
+        "node_errors":          [],
+    }
+
+    if use_mlflow:
+        with mlflow.start_run(run_name=f"agent-d4-{int(time.time())}") as run:
+            initial["mlflow_run_id"] = run.info.run_id
+            mlflow.log_param("query", query)
+            result = graph.invoke(initial)
+            return result
+    else:
+        # Run without MLflow — all agent logic still works
         result = graph.invoke(initial)
-
-        mlflow.log_metric("facilities_retrieved",
-                          len(result.get("retrieved_facilities", [])))
-        mlflow.log_metric("anomalies_found",
-                          len(result.get("reasoning", {}).get("anomalies_flagged", [])))
-        mlflow.log_metric("gaps_found",
-                          len(result.get("reasoning", {}).get("gaps_identified",   [])))
-        mlflow.log_metric("narrative_length",
-                          len(result.get("narrative", "")))
-        mlflow.log_metric("node_errors_count",
-                          len(result.get("node_errors", [])))
         return result
-
 
 # ════════════════════════════════════════════════════════════════════════════
 # PLANNING SYSTEM — 5-step guided workflow (carried from Day 3, hardened)
