@@ -158,48 +158,44 @@ class MedicalIDP:
     # ── Extraction ─────────────────────────────────────────────────────────────
 
     def extract_from_text(self, text: str) -> Dict[str, Any]:
-        if self._mlflow_enabled:
-            with mlflow.start_run(run_name=f"IDP_Extraction"):
-                return self._extract(text)
-        else:
+        """
+        Extracts a FacilityFact from free-form text.
+        MLflow logging is attempted but silently disabled if unavailable.
+        """
+        try:
+            return self._extract_with_mlflow(text)
+        except Exception:
             return self._extract(text)
 
-
-     def _extract(self, text: str) -> Dict[str, Any]:
-        mlflow.log_param("text_length", len(text))
+    def _extract_with_mlflow(self, text: str) -> Dict[str, Any]:
+        import hashlib, time
+        text_hash = hashlib.md5(text.encode()).hexdigest()[:8]
+        with mlflow.start_run(run_name=f"IDP_Extraction_{text_hash}"):
+            mlflow.log_param("text_length", len(text))
             mlflow.log_param("model_used",  MODEL_NAME)
             mlflow.log_param("prompt_type", "few_shot")
+            result = self._extract(text)
+            mlflow.log_metric("specialties_extracted", len(result.get("specialties", [])))
+            return result
 
-            start      = time.time()
-            result     = None
-            last_error = None
-
-            for attempt in range(1, MAX_RETRIES + 1):
-                try:
-                    result = self._chain.invoke({"text": text})
-                    break
-                except Exception as e:
-                    last_error = str(e)
-                    mlflow.log_param(f"retry_{attempt}_error", last_error[:200])
-                    if attempt < MAX_RETRIES:
-                        time.sleep(attempt)   # 1s, 2s back-off
-
-            latency = time.time() - start
-            mlflow.log_metric("latency_s",             round(latency, 3))
-            mlflow.log_metric("retry_count",           attempt - 1)
-            mlflow.log_metric("extraction_success",    1 if result else 0)
-
-            if result is None:
-                raise RuntimeError(
-                    f"Extraction failed after {MAX_RETRIES} attempts. Last error: {last_error}"
-                )
-
-            mlflow.log_metric("specialties_extracted", len(result.specialties))
-            mlflow.log_metric("procedures_extracted",  len(result.procedure))
-            mlflow.log_metric("equipment_extracted",   len(result.equipment))
-            mlflow.log_metric("capability_extracted",  len(result.capability))
-
-            return result.model_dump()
+    def _extract(self, text: str) -> Dict[str, Any]:
+        import time
+        result     = None
+        last_error = None
+        for attempt in range(1, MAX_RETRIES + 1):
+            try:
+                result = self._chain.invoke({"text": text})
+                break
+            except Exception as e:
+                last_error = str(e)
+                if attempt < MAX_RETRIES:
+                    time.sleep(attempt)
+        if result is None:
+            raise RuntimeError(
+                f"Extraction failed after {MAX_RETRIES} attempts. "
+                f"Last error: {last_error}"
+            )
+        return result.model_dump()
 
     # ── MLflow prompt comparison experiment ───────────────────────────────────
 
