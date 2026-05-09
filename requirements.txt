@@ -7,10 +7,10 @@ langchain-core
 langchain-groq
 lancedb
 sentence-transformers
-mlflow
+mlflow>=2.13.0
 python-dotenv
 pydantic
 requests
 python-multipart
 nest-asyncio
-databricks-sdk
+databricks-sdk>=0.28.0
