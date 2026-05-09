@@ -10,3 +10,4 @@ databricks-sql-connector
 python-dotenv
 nest_asyncio
 langchain-groq
+aiofiles

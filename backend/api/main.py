@@ -471,25 +471,35 @@ async def eval_backend():
 # ── /agent ────────────────────────────────────────────────────────────────────
 
 @app.post("/agent")
-async def chat_agent(payload: AgentRequest):
+async def agent_endpoint(payload: DocumentRequest):
     """
-    Connects the React chat UI to the LangGraph reasoning engine.
+    Full agent pipeline — called by the frontend chat UI.
+    Accepts: {text: str}  (DocumentRequest — same model as /extract)
+    Returns: AgentResponse JSON
+      {narrative, recommendations, anomalies_flagged, gaps_identified,
+       cited_row_ids, query, generated_at, node_errors}
+ 
+    Timeout: 25 seconds (set on frontend axios instance).
+    The agent itself enforces 15s per node with graceful fallback.
     """
-    _require_engine("/agent")
-    
+    import json as _json
+    from agent.agent import run_agent   # import here to avoid circular import at startup
+ 
+    query = payload.text.strip()
+    if not query:
+        raise _error(422, "Agent query cannot be empty.")
+    if len(query) > 1000:
+        raise _error(422, "Query too long — maximum 1000 characters.")
+ 
     try:
-        # Execute the full retrieve -> reason -> synthesize -> respond loop
-        result = run_agent(query=payload.query, region=payload.region)
-        
-        # agent.py packs the final typed Pydantic object into a JSON string
-        response_json_str = result.get("response", "{}")
-        
-        # Parse it back to a dict so FastAPI serves it correctly as application/json
-        return json.loads(response_json_str)
-        
+        result        = run_agent(query)
+        response_str  = result.get("response", "{}")
+        # respond_node returns a JSON string — parse it for the HTTP response
+        response_dict = _json.loads(response_str) if isinstance(response_str, str) else response_str
+        return response_dict
     except Exception as e:
         logger.error(f"/agent error: {e}")
-        raise _error(500, f"Agent orchestration failed: {str(e)}")
+        raise _error(500, f"Agent pipeline error: {str(e)}")
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -514,7 +524,7 @@ if os.path.exists(frontend_dist_path):
 else:
     logger.warning("Frontend dist folder not found. API only mode.")
 
-    
+
 if __name__ == "__main__":
     nest_asyncio.apply()
     logger.info("Starting Virtue Foundation IDP API v4.0 on port 8000")
