@@ -45,9 +45,7 @@ API_BASE   = os.getenv("INTERN1_API_BASE", "http://127.0.0.1:8000")
 NODE_TIMEOUT_S         = 15     # max seconds per node before fallback
 SEARCH_CONF_THRESHOLD  = 0.60   # below this → Genie fallback
 
-mlflow.set_tracking_uri("databricks")
-mlflow.set_experiment("/Shared/IDP-Backend-API")
-mlflow.langchain.autolog()
+
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -677,6 +675,10 @@ def run_agent(query: str, region: str = None) -> Dict[str, Any]:
     All 4 nodes tag the same run ID for step-level citation tracing.
     Returns the full final state dict.
     """
+    import os
+    os.environ["MLFLOW_ENABLE_DB_SDK"] = "true"
+    mlflow.set_tracking_uri("databricks")
+    mlflow.set_experiment("/Shared/IDP-Backend-API")
     with mlflow.start_run(run_name=f"agent-d4-{int(time.time())}") as run:
         mlflow.log_param("query",  query)
         mlflow.log_param("region", region or "unspecified")
