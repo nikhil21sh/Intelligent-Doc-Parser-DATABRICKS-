@@ -2,6 +2,9 @@ command: ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
 
 env:
   - name: GROQ_API_KEY
-    valueFrom: "groq-api-key"        # set as a secret in step 4
+    valueFrom:
+      secretRef:
+        scope: medmap-secrets
+        key: GROQ_API_KEY
   - name: INTERN1_API_BASE
     value: "http://127.0.0.1:8000"
