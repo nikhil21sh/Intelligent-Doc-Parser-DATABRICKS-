@@ -158,16 +158,15 @@ class MedicalIDP:
     # ── Extraction ─────────────────────────────────────────────────────────────
 
     def extract_from_text(self, text: str) -> Dict[str, Any]:
-        """
-        Extracts a FacilityFact from free-form text.
-        Few-shot prompting + 3-attempt retry loop.
-        Every run logged to MLflow with metrics.
-        Returns dict (serialisable for FastAPI JSON response).
-        """
-        text_hash = hashlib.md5(text.encode()).hexdigest()[:8]
+    if self._mlflow_enabled:
+        with mlflow.start_run(run_name=f"IDP_Extraction"):
+            return self._extract(text)
+    else:
+        return self._extract(text)
 
-        with mlflow.start_run(run_name=f"IDP_Extraction_{text_hash}"):
-            mlflow.log_param("text_length", len(text))
+
+     def _extract(self, text: str) -> Dict[str, Any]:
+        mlflow.log_param("text_length", len(text))
             mlflow.log_param("model_used",  MODEL_NAME)
             mlflow.log_param("prompt_type", "few_shot")
 
