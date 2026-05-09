@@ -158,11 +158,11 @@ class MedicalIDP:
     # ── Extraction ─────────────────────────────────────────────────────────────
 
     def extract_from_text(self, text: str) -> Dict[str, Any]:
-    if self._mlflow_enabled:
-        with mlflow.start_run(run_name=f"IDP_Extraction"):
+        if self._mlflow_enabled:
+            with mlflow.start_run(run_name=f"IDP_Extraction"):
+                return self._extract(text)
+        else:
             return self._extract(text)
-    else:
-        return self._extract(text)
 
 
      def _extract(self, text: str) -> Dict[str, Any]:
