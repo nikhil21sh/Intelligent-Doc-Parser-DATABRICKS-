@@ -91,10 +91,15 @@ class MedicalIDP:
     """
 
     def __init__(self):
-        import os
-        os.environ["MLFLOW_ENABLE_DB_SDK"] = "true"
-        mlflow.set_tracking_uri("databricks")
-        mlflow.set_experiment("/Shared/IDP-Backend-API")
+        self._mlflow_enabled = False
+        try:
+            import os
+            os.environ["MLFLOW_ENABLE_DB_SDK"] = "true"
+            mlflow.set_tracking_uri("databricks")
+            mlflow.set_experiment("/Shared/IDP-Backend-API")
+            self._mlflow_enabled = True
+        except Exception as e:
+            print(f"MLflow disabled: {e}")
 
         self.llm = ChatGroq(
             model=MODEL_NAME,
