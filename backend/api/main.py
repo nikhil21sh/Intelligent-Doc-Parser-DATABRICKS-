@@ -84,6 +84,8 @@ idp_engine: Optional[MedicalIDP] = None
 
 @app.on_event("startup")
 async def startup():
+    import os
+    os.environ["MLFLOW_ENABLE_DB_SDK"] = "true"
     global idp_engine
     logger.info("Starting up — loading MedicalIDP engine...")
     idp_engine = MedicalIDP()
