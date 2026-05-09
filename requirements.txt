@@ -1,0 +1,16 @@
+fastapi
+uvicorn
+aiofiles
+langgraph
+langchain
+langchain-core
+langchain-groq
+lancedb
+sentence-transformers
+mlflow
+python-dotenv
+pydantic
+requests
+python-multipart
+nest-asyncio
+databricks-sdk
